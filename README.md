@@ -2,11 +2,11 @@
 
 ## Problem Definition
 
-Luma needs to regularly synchronize appointments from busy hospital to a local database. The hospital exposes an api that providers data for appointment, providers, facilities and patients.
+Luma needs to regularly synchronize appointments from a busy hospital to a local database. The hospital exposes an api that provides data for appointment, providers, facilities and patients.
 
 ## Interview Task
 
-Create a one way sync engine in node.js that will regularly pulls  data from the hospital and store it locally.  
+Create a one way sync engine in node.js that will regularly pull data from the hospital and store it locally.
 
 
 ## Sync Engine Requirements
@@ -19,7 +19,7 @@ Create a one way sync engine in node.js that will regularly pulls  data from the
 
 ## Dependencies
 
-You’ll be give a started node project that contains the apis to LumaMock and SyncEngine.
+You’ll be provided a started node project that contains the apis to LumaMock and SyncEngine.
 LumaMock exposes the apis to pull data from the hospital.
 * getFacilities
 * getProviders
@@ -29,7 +29,7 @@ LumaMock exposes the apis to pull data from the hospital.
 
 ## Deliverables
 
-The code must expose an endpoint where we can start the sync engine and 
+The code must expose an endpoint where we can start the sync engine
 
 ## Bonus
 

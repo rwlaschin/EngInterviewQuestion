@@ -1,23 +1,43 @@
 {
   "name": "enginterviewquestion",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "## Problem Definition",
   "main": "LumaMock.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node sync-engine.js"
+    "test": "nyc mocha --recursive test",
+    "start": "node src/index.js",
+    "start:dev": "nodemon --watch src --inspect src/index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lumahealthhq/EngInterviewQuestion.git"
   },
-  "author": "",
+  "author": "robert wlaschin",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/lumahealthhq/EngInterviewQuestion/issues"
   },
   "homepage": "https://github.com/lumahealthhq/EngInterviewQuestion#readme",
   "dependencies": {
-    "moment": "^2.22.2"
-  }
+    "dotenv": "^6.2.0",
+    "fastify": "^1.13.2",
+    "fastify-cors": "^0.2.0",
+    "moment": "^2.22.2",
+    "promise": "^8.0.2",
+    "require-all": "^3.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-sinon": "^2.8.1",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.8",
+    "nyc": "^13.1.0",
+    "sinon": "^7.2.2"
+  },
+  "keywords": [
+    "luma",
+    "health",
+    "periodic",
+    "sync"
+  ]
 }
