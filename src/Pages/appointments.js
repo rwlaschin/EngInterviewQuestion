@@ -223,7 +223,7 @@ function normalizeObjectsToArray(appointments) {
 }
 
 /**
- * Compairison routine for appointment objects
+ * Comparison routine for appointment objects
  * @param {*} a appointment data
  * @param {*} b appointment data
  */
