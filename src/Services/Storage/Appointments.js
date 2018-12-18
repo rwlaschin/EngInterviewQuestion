@@ -18,19 +18,56 @@ const _path = _rootpath + ".%s";
 } */
 module.exports = new function Appointments() {
 	/**
+	 * Report differences between new and current data
+	 * remove deleted fields, except for patient id
+	 * @param {*} local locally cached data
+	 * @param {*} remote 3rd party remove data
+	 * @param {*} status reporting object
+	 */
+	this.recordDifferences = function(local, remote, status) {
+		var seen = {};
+		if (local.message !== undefined) {
+			status.diffs = Object.keys(remote).join();
+			return remote;
+		}
+		(status.created = false), (status.diffs = []);
+		Object.keys(remote).forEach(key => {
+			seen[key] = true;
+			if (!(key in local)) {
+				status.diffs.push(` (+) ${key} ${local[key]} -> ${remote[key]}`);
+			} else if (local[key] != remote[key]) {
+				status.diffs.push(` (m) ${key} ${remote[key]}`);
+			}
+		});
+		Object.keys(local).forEach(key => {
+			if (!(key in seen)) {
+				status.diffs.push(` (-) ${key} ${local[key]}`);
+				/*if (key !== "patient")*/ delete local[key];
+			}
+		});
+		return Object.assign(local, remote);
+	};
+
+	/**
 	 * Add or Update new Appointment Information
 	 * @param {*} appointment
+	 * @returns {*} status  {created {bool}, diffs {array} }
 	 */
 	this.sync = async function(appointment) {
-		// In production utc which is not effected by daylights savings time
-		const timestamp = Moment(appointment.date, "x")
-			.startOf("day")
-			.valueOf();
-		await MemoryStore.insert(Util.format(_path, timestamp, appointment.id), appointment);
+		var status = { created: true, diffs: "" };
+		const timestamp = Moment(appointment.date, "x").startOf("day").valueOf();
+		const key = Util.format(_path, timestamp, appointment.id);
+		try {
+			var current = await MemoryStore.get(key);
+			appointment = this.recordDifferences(current, appointment, status);
+			await MemoryStore.insert(key, appointment);
+		} catch (e) {}
+		return status;
 	};
 	/**
 	 * Get all appointments by time
 	 * @param {Number} timestamp unit timestamp (UTC)
+	 * @returns {*} data
 	 */
 	this.get = async function(timestamp) {
 		try {

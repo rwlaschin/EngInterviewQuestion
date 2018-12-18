@@ -88,7 +88,11 @@ async function writeOutContent(req, res, data) {
 			if (item && !item.isEmpty) {
 				val = {
 					status: item.status,
-					patient: item.patient ? (await Patients.get(item.facility, item.patient)).name : "undefined",
+					patient: item.patient
+						? (await Patients.get(item.facility, item.patient)).name
+						: item.whitespace
+						? "Open"
+						: "Reserved",
 					facility: item.facility ? (await Facilities.get(item.facility)).name : "undefined",
 					provider: item.provider ? (await Providers.get(item.provider)).name : "undefined",
 				};
@@ -101,6 +105,7 @@ async function writeOutContent(req, res, data) {
 	res.send(`
 	<html>
 		<header>
+			<script>setTimeout(()=>{window.location.reload(1);},5000);</script>
 			<style>
 				tr:nth-child(even) {background: #CCC}
 				tr:nth-child(odd) {background: #FFF}

@@ -16,8 +16,7 @@ module.exports = new function Providers() {
 	this.sync = async function(provider) {
 		let p1 = MemoryStore.insert(Util.format(_path, provider.id), provider);
 		let p2 = MemoryStore.insert(Util.format(_trpath, provider.name), provider.id);
-		await p1;
-		await p2;
+		await p1, await p2;
 	};
 	/**
 	 * Gets provider information from name

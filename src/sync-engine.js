@@ -132,15 +132,16 @@ function getAppointments(startDate, endDate) {
 			return;
 		}
 		appointments.forEach(appointment => {
-			lumaMock.getPatient(appointment.patient, appointment.facility, (err, patient) => {
+			lumaMock.getPatient(appointment.patient, appointment.facility, async (err, patient) => {
 				if (err) {
 					return;
 				}
-				// TODO: Ask about procedure for syncing if id is missing
-				// what is a 'blocked' appointment, what is a 'whitespace'?
-				Patients.sync(appointment.facility, appointment.patient, patient);
-				Appointments.sync(appointment);
-				console.log(`appointment ${appointment.date}  patient ${patient.name}`);
+				var pstat = await Patients.sync(appointment.facility, appointment.patient, patient);
+				var astat = await Appointments.sync(appointment);
+				console.log(
+					`appointment ${appointment.date} ${astat.diffs}\n` +
+						`  patient ${patient.name} ${pstat ? pstat.diffs : ""}`,
+				);
 			});
 		});
 	});
