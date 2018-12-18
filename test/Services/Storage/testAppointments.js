@@ -3,8 +3,8 @@
 var chai = require("chai");
 var sinon = require("sinon");
 var expect = chai.expect;
-chai.should();
 chai.use(require("chai-sinon"));
+chai.use(require("chai-as-promised"));
 
 var Moment = require("Moment");
 const MemoryStore = require("../../../src/Modules/MemoryStore");
@@ -27,24 +27,15 @@ describe("Appointments Module", function() {
 		MemoryStore.remove.restore();
 		MemoryStore.get.restore();
 	});
-	context("Exports", function() {
-		it("should export object", function() {
-			expect(Module).to.be.an("object");
-		});
-		it("should export remove function", function() {
-			expect(Module.remove).to.be.a("function");
-		});
-	});
 	context("Sync", function() {
 		it("should insert data to appointments using timestamp,date, and id", function() {
 			var data = { id: 1, date: Moment().valueOf() };
-			var startOfToday = Moment(data.date, "x")
-				.startOf("day")
-				.valueOf();
 
-			Module.sync(data);
+			MemoryStore.get.returns(data);
+			MemoryStore.insert.resolves(data);
 
-			expect(MemoryStore.insert).to.be.calledWith(`appointments.${startOfToday}.${data.id}`, data);
+			var result = Module.sync(data);
+			return expect(result).to.eventually.become({ created: false, diffs: [] });
 		});
 	});
 	context("Remove", function() {
@@ -78,6 +69,39 @@ describe("Appointments Module", function() {
 					expect(err).to.not.throw();
 				})
 				.finally(done);
+		});
+		context("Record Differences", function() {
+			it("should return remote when new", function() {
+				var remote = { a: 1 },
+					status = {};
+				var result = Module.recordDifferences(new Error("Test Error"), remote, status);
+				expect(result).to.equal(remote);
+				expect(status).to.eql({ diffs: "a" });
+			});
+			it("should merge remote with existing", function() {
+				var remote = { a: 1 },
+					existing = { b: 2 },
+					status = {};
+				var result = Module.recordDifferences(existing, remote, status);
+				expect(result).to.equal(remote);
+				expect(status).to.eql({ created: false, diffs: [" (+) a 1", " (-) b 2"] });
+			});
+			it("should record modified fields", function() {
+				var remote = { c: 3 },
+					existing = { c: 2 },
+					status = {};
+				var result = Module.recordDifferences(existing, remote, status);
+				expect(result).to.equal(remote);
+				expect(status).to.eql({ created: false, diffs: [" (m) c 2 -> 3"] });
+			});
+			it("should record missing fields", function() {
+				var remote = {},
+					existing = { b: 2 },
+					status = {};
+				var result = Module.recordDifferences(existing, remote, status);
+				expect(result).to.equal(remote);
+				expect(status).to.eql({ created: false, diffs: [" (-) b 2"] });
+			});
 		});
 	});
 });

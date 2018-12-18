@@ -34,18 +34,17 @@ module.exports = new function Appointments() {
 		Object.keys(remote).forEach(key => {
 			seen[key] = true;
 			if (!(key in local)) {
-				status.diffs.push(` (+) ${key} ${local[key]} -> ${remote[key]}`);
+				status.diffs.push(` (+) ${key} ${remote[key]}`);
 			} else if (local[key] != remote[key]) {
-				status.diffs.push(` (m) ${key} ${remote[key]}`);
+				status.diffs.push(` (m) ${key} ${local[key]} -> ${remote[key]}`);
 			}
 		});
 		Object.keys(local).forEach(key => {
 			if (!(key in seen)) {
 				status.diffs.push(` (-) ${key} ${local[key]}`);
-				/*if (key !== "patient")*/ delete local[key];
 			}
 		});
-		return Object.assign(local, remote);
+		return remote;
 	};
 
 	/**
@@ -55,7 +54,10 @@ module.exports = new function Appointments() {
 	 */
 	this.sync = async function(appointment) {
 		var status = { created: true, diffs: "" };
-		const timestamp = Moment(appointment.date, "x").startOf("day").valueOf();
+		const timestamp = Moment(appointment.date, "x")
+			.startOf("day")
+			.valueOf();
+
 		const key = Util.format(_path, timestamp, appointment.id);
 		try {
 			var current = await MemoryStore.get(key);
@@ -71,7 +73,7 @@ module.exports = new function Appointments() {
 	 */
 	this.get = async function(timestamp) {
 		try {
-			return (await MemoryStore.get(Util.format(_rootpath, timestamp))) || {};
+			return await MemoryStore.get(Util.format(_rootpath, timestamp));
 		} catch (e) {
 			return {};
 		}

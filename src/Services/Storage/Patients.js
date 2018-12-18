@@ -42,18 +42,17 @@ module.exports = new function Patients() {
 		Object.keys(remote).forEach(key => {
 			seen[key] = true;
 			if (!(key in local)) {
-				status.diffs.push(` (+) ${key} ${local[key]} -> ${remote[key]}`);
+				status.diffs.push(` (+) ${key} ${remote[key]}`);
 			} else if (!_.isEqual(local[key], remote[key])) {
-				status.diffs.push(` (m) ${key} ${remote[key]}`);
+				status.diffs.push(` (m) ${key} ${local[key]} -> ${remote[key]}`);
 			}
 		});
 		Object.keys(local).forEach(key => {
 			if (!(key in seen)) {
 				status.diffs.push(` (-) ${key} ${local[key]}`);
-				if (key !== "patient") delete local[key];
 			}
 		});
-		return Object.assign(local, remote);
+		return remote;
 	};
 
 	/**
@@ -72,8 +71,9 @@ module.exports = new function Patients() {
 			var current = await this.get(fid, pid);
 			patient = this.recordDifferences(current, patient, status);
 			await MemoryStore.insert(Util.format(_path, fid, pid), patient);
+			return status;
 		} catch (e) {}
-		return status;
+		return false;
 	};
 	/**
 	 * Gets facility data by id
