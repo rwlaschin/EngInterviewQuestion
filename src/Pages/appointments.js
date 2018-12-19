@@ -23,8 +23,8 @@ module.exports = async function(req, res) {
 		req.query.provider === ""
 			? req.query.facility === ""
 				? unFiltered
-				: facilitiesFilter(req.query.facility)
-			: providerFilter(req.query.provider),
+				: await facilitiesFilter(req.query.facility)
+			: await providerFilter(req.query.provider),
 	);
 	pivotDataToRowFormat(startMoment, schedule);
 	writeOutContent(req, res, { schedule: schedule });
@@ -44,8 +44,8 @@ function unFiltered() {
  * @param {String} provider name
  * @returns callback
  */
-function providerFilter(name) {
-	var id = Providers.getByName(name).id;
+async function providerFilter(name) {
+	var id = (await Providers.getByName(name)).id;
 	if (!id) {
 		return unFiltered;
 	}
@@ -59,13 +59,13 @@ function providerFilter(name) {
  * @param {String} facilities name
  * @returns callback
  */
-function facilitiesFilter(name) {
-	var id = Facilities.getByName(name).id;
+async function facilitiesFilter(name) {
+	var id = (await Facilities.getByName(name)).id;
 	if (!id) {
 		return unFiltered;
 	}
 	return function filter(item) {
-		return item.facilities === id;
+		return item.facility === id;
 	};
 }
 
@@ -188,9 +188,7 @@ async function processInformation(startMoment, endMoment, filtercb) {
 				}
 				schedule.data.push(normalizedAppts);
 			})
-			.catch(function(err) {
-				console.error("Error", err);
-			});
+			.catch(function(err) {});
 		promises.push(promise);
 	}
 	for (var i = 0; i < promises.length; i++) {
