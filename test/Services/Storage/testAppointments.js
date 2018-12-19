@@ -76,7 +76,7 @@ describe("Appointments Module", function() {
 					status = {};
 				var result = Module.recordDifferences(new Error("Test Error"), remote, status);
 				expect(result).to.equal(remote);
-				expect(status).to.eql({ diffs: "a" });
+				expect(status).to.eql({ diffs: [" (+) a 1"] });
 			});
 			it("should merge remote with existing", function() {
 				var remote = { a: 1 },

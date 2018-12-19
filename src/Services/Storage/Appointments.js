@@ -28,9 +28,7 @@ module.exports = new function Appointments() {
 		var seen = {};
 		if (!local || local.message !== undefined) {
 			var keys = Object.keys(remote);
-			status.diffs = keys.map(key => {
-				` (+) ${key} ${remote[key]}`;
-			});
+			status.diffs = keys.map(key => ` (+) ${key} ${remote[key]}`);
 			return remote;
 		}
 		(status.created = false), (status.diffs = []);
