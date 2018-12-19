@@ -13,9 +13,13 @@ module.exports = async function(req, res) {
 	req.query.provider = (req.query.provider || "").replace(/\"/g, "");
 	req.query.facility = (req.query.facility || "").replace(/\"/g, "");
 
-	let startMoment = req.query.date ? moment(req.query.date, "YYYY-MM-DD") : moment().startOf("day");
+	let startMoment = (req.query.start ? moment(req.query.start, "YYYY-MM-DD") : moment()).startOf("day");
+	let endMoment = moment(startMoment)
+		.add(6, "days")
+		.startOf("day");
 	let schedule = await processInformation(
 		startMoment,
+		endMoment,
 		req.query.provider === ""
 			? req.query.facility === ""
 				? unFiltered
@@ -153,14 +157,13 @@ async function writeOutContent(req, res, data) {
  * @param {String} provider provider to filter schedule
  * @param {*} startMoment moment time object to start with
  */
-async function processInformation(startMoment, filtercb) {
-	var schedule = { data: [], headers: ["Times"], pivot: [] };
-	var endMoment = moment(startMoment).add("7", "days");
+async function processInformation(startMoment, endMoment, filtercb) {
+	var schedule = { data: [], headers: ["Times"], pivot: [], delta: 30, offset: 7, workDay: 13 };
 	var promises = [];
 
-	for (let cursor = startMoment; cursor.isBefore(endMoment); cursor.add("1", "days")) {
+	for (let cursor = startMoment; cursor.isSameOrBefore(endMoment); cursor.add("1", "days")) {
 		let curMoment = cursor.clone();
-		var promise = Appointments.get(curMoment.valueOf())
+		var promise = Appointments.get(curMoment.valueOf(), false)
 			.then(function(appts) {
 				var normalizedAppts = [];
 				schedule.headers.push(curMoment.format("dddd"));
@@ -169,14 +172,16 @@ async function processInformation(startMoment, filtercb) {
 				appts.sort(compareAppointments);
 
 				for (
-					let s = moment(curMoment), e = moment(curMoment).add(1, "days"), workingIndex = 0;
+					var s = moment(curMoment).add(schedule.offset, "hours"),
+						e = moment(s).add(schedule.workDay, "hours"),
+						workingIndex = 0;
 					s.isBefore(e);
-					s.add(30, "minutes")
+					s.add(schedule.delta, "minutes")
 				) {
 					if (appts.length > workingIndex && s.isSame(appts[workingIndex].date)) {
 						normalizedAppts.push(appts[workingIndex]);
 						workingIndex++;
-						s.subtract(30, "minutes");
+						s.subtract(schedule.delta, "minutes");
 						continue;
 					}
 					normalizedAppts.push({ date: moment(s), isEmpty: true });
@@ -184,7 +189,7 @@ async function processInformation(startMoment, filtercb) {
 				schedule.data.push(normalizedAppts);
 			})
 			.catch(function(err) {
-				console.error(err);
+				console.error("Error", err);
 			});
 		promises.push(promise);
 	}
@@ -201,9 +206,9 @@ async function processInformation(startMoment, filtercb) {
  */
 function pivotDataToRowFormat(startMoment, schedule) {
 	for (
-		var i = 0, l = schedule.data[0].length, deltaMoment = moment(startMoment);
+		var i = 1, l = schedule.data[0].length, deltaMoment = moment(startMoment).add(schedule.offset, "hours");
 		i < l;
-		i++, deltaMoment.add(30, "minutes")
+		i++, deltaMoment.add(schedule.delta, "minutes")
 	) {
 		var columnData = [deltaMoment.format("hh:mm")];
 		for (var j = 0, e = 7; j < e; j++) {

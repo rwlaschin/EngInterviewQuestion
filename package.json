@@ -5,8 +5,10 @@
   "main": "LumaMock.js",
   "scripts": {
     "test": "nyc mocha --recursive test",
-    "start": "node src/index.js",
-    "start:dev": "nodemon --watch src --inspect src/index.js"
+    "start": "MEMORYSTORE=redis npm run start:redis && node src/index.js",
+    "start:dev": "nodemon --watch src --inspect src/index.js",
+    "start:redis": "redis-cli ping &>/dev/null || ( { redis-server &>/dev/null & }; disown )",
+    "start:admin": "[ -n `which redsmin 2>/dev/null` ] || npm install redsmin@latest -g; { REDSMIN_KEY=5c04358f84aaed06eb805d6f redsmin &>/dev/null & } && disown"
   },
   "repository": {
     "type": "git",
@@ -22,6 +24,7 @@
     "dotenv": "^6.2.0",
     "fastify": "^1.13.2",
     "fastify-cors": "^0.2.0",
+    "ioredis": "^4.3.0",
     "moment": "^2.22.2",
     "promise": "^8.0.2",
     "require-all": "^3.0.0"

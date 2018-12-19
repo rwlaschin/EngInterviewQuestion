@@ -62,10 +62,10 @@ async function pull() {
 	if (_nextPullTime >= Date.now()) {
 		return;
 	}
-	// This doesn't work when daylight savings time happens
-	// in fact setInterval/setTimeout do not work properly when
+	// This may not work when daylight savings time happens
+	// in fact setInterval/setTimeout does not work properly when
 	// the system changes time.
-	_nextPullTime = Date.now() + (process.env.updatePeriodSeconds * 1000 || 10000);
+	_nextPullTime = Date.now() + (process.env.UPDATE_PERIOD_SECONDS * 1000 || 10000);
 
 	await syncFacilities();
 	await syncProviders();
@@ -154,8 +154,10 @@ function getAppointments(startDate, endDate) {
 function cleanUpStoredData() {
 	Appointments.remove(
 		moment()
+			.subtract(1, "days")
 			.startOf("day")
 			.valueOf(),
+		false,
 	);
 }
 

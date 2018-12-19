@@ -34,7 +34,7 @@ module.exports = new function Patients() {
 	 */
 	this.recordDifferences = function(local, remote, status) {
 		var seen = {};
-		if (local.message !== undefined) {
+		if (!local || local.message !== undefined) {
 			status.diffs = Object.keys(remote).join();
 			return remote;
 		}

@@ -26,8 +26,11 @@ module.exports = new function Appointments() {
 	 */
 	this.recordDifferences = function(local, remote, status) {
 		var seen = {};
-		if (local.message !== undefined) {
-			status.diffs = Object.keys(remote).join();
+		if (!local || local.message !== undefined) {
+			var keys = Object.keys(remote);
+			status.diffs = keys.map(key => {
+				` (+) ${key} ${remote[key]}`;
+			});
 			return remote;
 		}
 		(status.created = false), (status.diffs = []);
@@ -71,9 +74,9 @@ module.exports = new function Appointments() {
 	 * @param {Number} timestamp unit timestamp (UTC)
 	 * @returns {*} data
 	 */
-	this.get = async function(timestamp) {
+	this.get = async function(timestamp, exact = true) {
 		try {
-			return await MemoryStore.get(Util.format(_rootpath, timestamp));
+			return await MemoryStore.get(Util.format(_rootpath, timestamp), exact);
 		} catch (e) {
 			return {};
 		}
@@ -82,8 +85,8 @@ module.exports = new function Appointments() {
 	 * Remove old data by date
 	 * @param {Number} timestamp unix timestamp (UTC)
 	 */
-	this.remove = function(timestamp) {
+	this.remove = function(timestamp, exact) {
 		// walk through all of the appointments added during this day and remove
-		MemoryStore.remove(Util.format(_rootpath, timestamp));
+		MemoryStore.remove(Util.format(_rootpath, timestamp), exact);
 	};
 }();
